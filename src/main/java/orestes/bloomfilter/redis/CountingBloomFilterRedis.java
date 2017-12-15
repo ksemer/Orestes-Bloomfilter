@@ -52,6 +52,20 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
         }, keys.BITS_KEY, keys.COUNTS_KEY);
         return results.stream().skip(config().hashes()).map(i -> (Long) i).min(Comparator.<Long>naturalOrder()).get();
     }
+    
+    @Override
+    public long addAndEstimateCountRaw(byte[] element, int times) {
+        List<Object> results = pool.transactionallyRetry(p -> {
+            int[] hashes = hash(element);
+            for (int position : hashes) {
+                bloom.set(p, position, true);
+            }
+            for (int position : hashes) {
+                p.hincrBy(keys.COUNTS_KEY, encode(position), 1);
+            }
+        }, keys.BITS_KEY, keys.COUNTS_KEY);
+        return results.stream().skip(config().hashes()).map(i -> (Long) i).min(Comparator.<Long>naturalOrder()).get();
+    }
 
     @Override
     public List<Boolean> addAll(Collection<T> elements) {

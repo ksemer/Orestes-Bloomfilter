@@ -37,8 +37,6 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
             this.clear();
     }
 
-
-
     @Override
     public FilterBuilder config() {
         return config;
@@ -48,6 +46,11 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
     public boolean addRaw(byte[] element) {
         return bloom.setAll(hash(element));
     }
+    
+	@Override
+	public boolean addRaw(byte[] element, int times) {
+        return bloom.setAll(hash(element));
+	}
 
     @Override
     public List<Boolean> addAll(Collection<T> elements) {
@@ -173,6 +176,4 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
 
         return true;
     }
-
-
 }

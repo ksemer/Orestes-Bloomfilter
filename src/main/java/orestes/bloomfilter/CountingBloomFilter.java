@@ -16,10 +16,18 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
         return config().countingBits();
     }
 
+    public default boolean add(T element, int times) {
+        return addRaw(toBytes(element), times);
+    }
 
     @Override
     public default boolean addRaw(byte[] element) {
         return addAndEstimateCountRaw(element) == 1;
+    }
+    
+    @Override
+    public default boolean addRaw(byte[] element, int times) {
+        return addAndEstimateCountRaw(element, times) == 1;
     }
 
     /**
@@ -73,6 +81,8 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      */
     public long addAndEstimateCountRaw(byte[] element);
 
+    public long addAndEstimateCountRaw(byte[] element, int times);
+
     /**
      * Adds an element and returns its estimated frequency after the insertion (i.e. the number of times the element was
      * added to the filter).
@@ -83,6 +93,11 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
     public default long addAndEstimateCount(T element) {
         return addAndEstimateCountRaw(toBytes(element));
     }
+    
+    public default long addAndEstimateCount(T element, int times) {
+        return addAndEstimateCountRaw(toBytes(element), times);
+    }
+
 
     /**
      * Removes an element and returns its estimated frequency after the insertion (i.e. the number of times the element

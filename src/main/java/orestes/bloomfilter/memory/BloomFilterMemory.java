@@ -32,6 +32,18 @@ public class BloomFilterMemory<T> implements BloomFilter<T> {
         }
         return added;
     }
+    
+	@Override
+	public synchronized boolean addRaw(byte[] element, int times) {
+        boolean added = false;
+        for (int position : hash(element)) {
+            if (!getBit(position)) {
+                added = true;
+                setBit(position, true);
+            }
+        }
+        return added;
+	}
 
     @Override
     public synchronized void clear() {

@@ -50,20 +50,6 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 		return IntStream.of(x).mapToLong(hash -> {
 			return increment(hash, times);
 		}).min().getAsLong();
-
-		// for (int i = 0; i < times; i++) {
-		//
-		// if (i + 1 == times) {
-		// return IntStream.of(x).mapToLong(hash -> {
-		// return increment(hash);
-		// }).min().getAsLong();
-		// }
-		//
-		// for (int hash : x)
-		// increment(hash);
-		// }
-		//
-		// return -1;
 	}
 
 	@Override
@@ -151,7 +137,7 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 		int newC_ = Integer.parseInt(oldC, 2) + times;
 		String newC = Integer.toBinaryString(newC_);
 		newC = String.format("%0" + config().countingBits() + "d", Integer.parseInt(newC));
-//		System.out.println(low + "\t" + high + "\t" + oldC + "\t" + );
+
 		long count = newC_;
 
 		// overflow

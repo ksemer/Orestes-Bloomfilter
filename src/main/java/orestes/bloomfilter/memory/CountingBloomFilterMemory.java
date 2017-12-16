@@ -47,19 +47,23 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 		for (int hash : x)
 			filter.setBit(hash, true);
 
-		for (int i = 0; i < times; i++) {
+		return IntStream.of(x).mapToLong(hash -> {
+			return increment(hash, times);
+		}).min().getAsLong();
 
-			if (i + 1 == times) {
-				return IntStream.of(x).mapToLong(hash -> {
-					return increment(hash);
-				}).min().getAsLong();
-			}
-
-			for (int hash : x)
-				increment(hash);
-		}
-
-		return -1;
+		// for (int i = 0; i < times; i++) {
+		//
+		// if (i + 1 == times) {
+		// return IntStream.of(x).mapToLong(hash -> {
+		// return increment(hash);
+		// }).min().getAsLong();
+		// }
+		//
+		// for (int hash : x)
+		// increment(hash);
+		// }
+		//
+		// return -1;
 	}
 
 	@Override
@@ -116,6 +120,60 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 			}
 			// return max value
 			count = (long) Math.pow(2, config().countingBits() - 1);
+		}
+
+		return count;
+	}
+
+	/**
+	 * Increment the internal counter by the given times
+	 * 
+	 * @param index
+	 *            position at which to increase
+	 * @param times
+	 *            the number of times that counter should be increased
+	 * @return the new counter
+	 */
+	protected long increment(int index, int times) {
+		int low = index * config().countingBits();
+		int high = (index + 1) * config().countingBits();
+
+		String oldC = "";
+
+		for (int i = low; i < high; i++) {
+
+			if (counts.get(i))
+				oldC += "1";
+			else
+				oldC += "0";
+		}
+
+		int newC_ = Integer.parseInt(oldC, 2) + times;
+		String newC = Integer.toBinaryString(newC_);
+		newC = String.format("%0" + config().countingBits() + "d", Integer.parseInt(newC));
+//		System.out.println(low + "\t" + high + "\t" + oldC + "\t" + );
+		long count = newC_;
+
+		// overflow
+		if (newC.length() > config.countingBits()) {
+
+			overflowHandler.run();
+
+			for (int i = (high - 1); i >= low; i--)
+				counts.set(i);
+
+			// return max value
+			count = (long) Math.pow(2, config().countingBits() - 1);
+
+		} else {
+
+			char[] chars = newC.toCharArray();
+			for (int i = 0; i < chars.length; i++) {
+				if (chars[i] == '1')
+					counts.set(i + low, true);
+				else
+					counts.set(i + low, false);
+			}
 		}
 		return count;
 	}
